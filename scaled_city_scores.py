@@ -1,43 +1,64 @@
 import streamlit as st
 import pandas as pd
+st.set_page_config(page_title="City Metrics Dashboard", layout="centered")
+# Load the data
+FILE_PATH = r"C:scaled_metrics_with_scores.xlsx"
 
-# 📌 Path to your Excel file (hosted online or in repo)
-FILE_URL = "https://raw.githubusercontent.com/yodieland/your-repo/main/scaled_metrics_with_scores.xlsx"
 
-# 📌 Load all sheets into a dictionary
 @st.cache_data
 def load_data():
-    xls = pd.ExcelFile(FILE_URL)
-    dfs = {sheet: pd.read_excel(xls, sheet) for sheet in xls.sheet_names}
-    return dfs
+    return pd.read_excel(FILE_PATH)
 
-# Load data
-dfs = load_data()
+df = load_data()
 
-# Streamlit UI
-st.set_page_config(page_title="City Scores Dashboard", layout="centered")
-st.title("📊 City Metrics Score Dashboard")
+# Streamlit UI - Credit Score Style
 
-# Dropdown for year selection
-year = st.selectbox("Select Year", options=list(dfs.keys()))
 
-# Get DataFrame for selected year
-df = dfs[year]
-
-# Ensure the correct columns exist
-score_columns = ["NAME_CITY", "Social_Score", "Political_Score", "Economic_Score", "Environmental_Score", "Total_Score"]
-df = df[score_columns] if set(score_columns).issubset(df.columns) else df
+# App Title
+st.markdown(
+    "<h1 style='text-align: center; font-size: 40px; color: #1f77b4;'>City Metrics Dashboard</h1>",
+    unsafe_allow_html=True,
+)
 
 # Dropdown for city selection
-selected_city = st.selectbox("Select City", df["NAME_CITY"].unique())
+city_name = st.selectbox(
+    "Select a City", df["NAME_CITY"].unique(), index=0, help="Choose a city to view its metrics."
+)
 
-# Display selected city's scores
-city_data = df[df["NAME_CITY"] == selected_city].iloc[0]
+# Filter data for the selected city
+city_data = df[df["NAME_CITY"] == city_name]
 
-st.header(f"🏙️ {selected_city}")
-st.subheader(f"Total Score: **{city_data['Total_Score']}**")
-st.metric("🌍 Social Score", city_data["Social_Score"])
-st.metric("🏛️ Political Score", city_data["Political_Score"])
-st.metric("💰 Economic Score", city_data["Economic_Score"])
-st.metric("🌱 Environmental Score", city_data["Environmental_Score"])
+if not city_data.empty:
+    total_score = city_data["Total_Score"].values[0]
 
+    # **Main Credit Score Display**
+    st.markdown(
+        f"""
+        <div style="text-align: center;">
+            <div style="font-size: 50px; font-weight: bold; color: #ff5733;">{total_score:.2f}</div>
+            <div style="font-size: 20px; color: #555;">Total Score</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # **Four Subscores (Displayed Like a Credit Score Breakdown)**
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    col1, col2, col3, col4 = st.columns(4)
+    
+    col1.metric(label="📊 Social Score", value=f"{city_data['Social_Score'].values[0]:.2f}")
+    col2.metric(label="🏛️ Political Score", value=f"{city_data['Political_Score'].values[0]:.2f}")
+    col3.metric(label="💰 Economic Score", value=f"{city_data['Economic_Score'].values[0]:.2f}")
+    col4.metric(label="🌿 Environmental Score", value=f"{city_data['Environmental_Score'].values[0]:.2f}")
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+else:
+    st.error("City not found!")
+
+# Footer
+st.markdown(
+    "<p style='text-align: center; font-size: 14px; color: gray;'>Developed with ❤️ using Streamlit</p>",
+    unsafe_allow_html=True,
+)

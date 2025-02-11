@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 st.set_page_config(page_title="City Metrics Dashboard", layout="centered")
 # Load the data
-FILE_PATH = r"C:scaled_metrics_with_scores.xlsx"
+FILE_PATH = r"scaled_metrics_with_scores.xlsx"
 
 
 @st.cache_data
